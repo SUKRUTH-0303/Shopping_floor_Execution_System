@@ -1,6 +1,7 @@
 
 # DISPATCH MODULE
 
+from datetime import datetime, date
 
 # Global storage
 job_counter = 1
@@ -29,10 +30,11 @@ def get_routing_map(product_type):
 
 # Job ID Generator
 
+
 def generate_job_id(product_type):
     global job_counter
 
-    product_code = "PARA500"  
+    product_code = "PARA500"
     job_id = f"{product_code}-BATCH-{str(job_counter).zfill(3)}"
 
     job_counter += 1
@@ -54,6 +56,17 @@ def validate_order(product_type, quantity, deadline):
 
     if not deadline:
         return False, "Deadline required."
+
+    #VALIDATION
+    try:
+        deadline_date = datetime.strptime(deadline, "%Y-%m-%d").date()
+    except ValueError:
+        return False, "Deadline must be in YYYY-MM-DD format."
+
+    today = date.today()
+
+    if deadline_date < today:
+        return False, "Deadline cannot be before today."
 
     return True, "Valid order."
 
@@ -84,6 +97,7 @@ def create_batch(product_type, quantity, deadline):
 
     print("Batch Created:", job_id)
     return batch
+
 
 
 # Release Batch
@@ -134,6 +148,7 @@ def get_released_batch(job_id):
     return None
 
 
+
 # View All Batches
 
 def list_batches():
@@ -158,4 +173,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
