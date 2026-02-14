@@ -1,15 +1,14 @@
-# -----------------------------------
+
 # DISPATCH MODULE
-# -----------------------------------
+
 
 # Global storage
 job_counter = 1
 batches = {}  # Stores all batches
 
 
-# ----------------------------
+
 # Routing Configuration
-# ----------------------------
 
 def get_routing_map(product_type):
     routing_config = {
@@ -27,23 +26,20 @@ def get_routing_map(product_type):
     return routing_config.get(product_type)
 
 
-# ----------------------------
+
 # Job ID Generator
-# ----------------------------
 
 def generate_job_id(product_type):
     global job_counter
 
-    product_code = "PARA500"  # Can extend later for multiple products
+    product_code = "PARA500"  
     job_id = f"{product_code}-BATCH-{str(job_counter).zfill(3)}"
 
     job_counter += 1
     return job_id
 
 
-# ----------------------------
 # Input Validation
-# ----------------------------
 
 def validate_order(product_type, quantity, deadline):
     if not product_type:
@@ -62,9 +58,8 @@ def validate_order(product_type, quantity, deadline):
     return True, "Valid order."
 
 
-# ----------------------------
+
 # Create Batch
-# ----------------------------
 
 def create_batch(product_type, quantity, deadline):
     is_valid, message = validate_order(product_type, quantity, deadline)
@@ -91,9 +86,7 @@ def create_batch(product_type, quantity, deadline):
     return batch
 
 
-# ----------------------------
 # Release Batch
-# ----------------------------
 
 def release_batch(job_id):
     batch = batches.get(job_id)
@@ -112,9 +105,7 @@ def release_batch(job_id):
     return batch
 
 
-# ----------------------------
 # Cancel Batch (Before Release)
-# ----------------------------
 
 def cancel_batch(job_id):
     batch = batches.get(job_id)
@@ -131,9 +122,7 @@ def cancel_batch(job_id):
     print("Batch Cancelled:", job_id)
 
 
-# ----------------------------
 # Get Released Batch for WIP
-# ----------------------------
 
 def get_released_batch(job_id):
     batch = batches.get(job_id)
@@ -145,18 +134,14 @@ def get_released_batch(job_id):
     return None
 
 
-# ----------------------------
 # View All Batches
-# ----------------------------
 
 def list_batches():
     for job_id, batch in batches.items():
         print(job_id, " ", batch["status"])
 
 
-# ----------------------------
 # Main Execution
-# ----------------------------
 
 def main():
     product = input("Enter product type: ")
@@ -173,3 +158,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
