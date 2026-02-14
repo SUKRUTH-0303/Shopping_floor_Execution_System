@@ -1,6 +1,7 @@
 
 # DISPATCH MODULE
 
+from datetime import datetime, date
 
 # Global storage
 job_counter = 1
@@ -55,7 +56,19 @@ def validate_order(product_type, quantity, deadline):
     if not deadline:
         return False, "Deadline required."
 
+    # ---- NEW DEADLINE VALIDATION ----
+    try:
+        deadline_date = datetime.strptime(deadline, "%Y-%m-%d").date()
+    except ValueError:
+        return False, "Deadline must be in YYYY-MM-DD format."
+
+    today = date.today()
+
+    if deadline_date < today:
+        return False, "Deadline cannot be before today."
+
     return True, "Valid order."
+
 
 
 
@@ -158,4 +171,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
