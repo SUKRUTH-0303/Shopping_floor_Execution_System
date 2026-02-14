@@ -13,7 +13,7 @@ def start_quality(job_id):
         print("Job is not ready for quality inspection")
         return
 
-    print("\n--- QUALITY CHECK STARTED ---")
+    print("\n QUALITY CHECK STARTED! ")
     print("Job:", job_id)
 
     hardness = float(input("Enter Hardness (kg/cm2): "))
