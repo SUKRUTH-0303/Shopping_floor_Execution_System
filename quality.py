@@ -38,7 +38,6 @@ def start_quality(job_id: str) -> None:
 
     evaluate(job_id)
 
-
 def evaluate(job_id: str) -> None:
     record: QualityRecord | None = quality_results.get(job_id)
 
@@ -55,16 +54,13 @@ def evaluate(job_id: str) -> None:
     else:
         fail(job_id)
 
-
 def pass_batch(job_id: str) -> None:
     print("QUALITY PASSED")
     WIP.release_hold(job_id)
 
-
 def fail(job_id: str) -> None:
     print("QUALITY FAILED")
     WIP.quarantine(job_id)
-
 
 def view_results(job_id: str) -> None:
     record: QualityRecord | None = quality_results.get(job_id)
