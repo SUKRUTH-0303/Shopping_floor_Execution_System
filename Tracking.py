@@ -67,3 +67,7 @@ class Batch:
             self.status = "UNDER_INSPECTION"
         else:
             self.status = f"READY_AT_{next_station}"
+
+    def get_status(self) -> None:
+        station: str = self.routing_map[self.current_step]
+        print(f"Job: {self.job_id} | Status: {self.status} | Station: {station}")
