@@ -1,119 +1,69 @@
-batches = {}
+class Batch:
+    def __init__(self, job_id: str, routing_map: list[str]) -> None:
+        if not routing_map:
+            print("Routing map cannot be empty")
+            return
 
-def receive_job(job_id):
-    # Accept a released batch into production.
-    batch = batches.get(job_id)
-    if batch is None:
-        print("Job not found:", job_id)
-        return
+        self.job_id: str = job_id
+        self.routing_map: list[str] = routing_map
+        self.current_step: int = 0
+        self.status: str = "CREATED"
 
-    if batch["status"] != "RELEASED":
-        print("Job", "needs to be released first")
-        return
+    def release(self) -> None:
+        if self.status != "CREATED":
+            print("Batch already released or in progress")
+            return
+        self.status = "RELEASED"
 
-    first_station = batch["routing_map"][0]
-    batch["current_step"] = 0
-    batch["status"] = "READY_AT_" + first_station
-    print("Job", "received. Status:", batch["status"])
+    def receive(self) -> None:
+        if self.status != "RELEASED":
+            print("Batch is not in RELEASED state")
+            return
 
+        first_station: str = self.routing_map[0]
+        self.current_step = 0
+        self.status = "READY_AT_" + first_station
 
-def start_station(job_id):
-    # Start work at the current station.
-    batch = batches.get(job_id)
-    if batch is None:
-        print("Job not found:", job_id)
-        return
+    def start_station(self) -> None:
+        if not self.status.startswith("READY_AT_"):
+            print("Batch is not ready to start")
+            return
 
-    # check if the job is actually ready
-    if not batch["status"].startswith("READY_AT_"):
-        print("Job", "is not ready to start. Current status:", batch["status"])
-        return
+        station: str = self.routing_map[self.current_step]
+        self.status = "IN_PROGRESS_" + station
+        
+    def finish_station(self) -> None:
+        if not self.status.startswith("IN_PROGRESS_"):
+            print("Batch is not in progress")
+            return
 
-    station = batch["routing_map"][batch["current_step"]]
-    batch["status"] = "IN_PROGRESS_" + station
-    print("Job", "- started work at", station)
+        self.advance_to_next()
 
+    def release_hold(self) -> None:
+        if self.status != "UNDER_INSPECTION":
+            print("Batch not under inspection")
+            return
 
-def finish_station(job_id):
-    # Finish work at the current station and move to next.
-    batch = batches.get(job_id)
-    if batch is None:
-        print("Job not found:", job_id)
-        return
+        self.advance_to_next()
 
-    if not batch["status"].startswith("IN_PROGRESS_"):
-        print("Job", "is not in progress right now")
-        return
+    def quarantine(self) -> None:
+        if self.status != "UNDER_INSPECTION":
+            print("Batch not under inspection")
+            return
 
-    station = batch["routing_map"][batch["current_step"]]
-    print("Job", "- finished", station)
+        self.status = "QUARANTINED"
 
-    # now move to the next step
-    advance_to_next(batch)
+    def advance_to_next(self) -> None:
+        next_index: int = self.current_step + 1
 
+        if next_index >= len(self.routing_map):
+            self.status = "FINISHED"
+            return
 
-def advance_to_next(batch):
-    # Move the batch to the next station in the route.
-    job_id = batch["job_id"]
-    next_index = batch["current_step"] + 1
+        next_station: str = self.routing_map[next_index]
+        self.current_step = next_index
 
-    # check if all stations are done
-    if next_index >= len(batch["routing_map"]):
-        batch["status"] = "FINISHED"
-        print("Job", "is FINISHED! All stations complete.")
-        return
-
-    next_station = batch["routing_map"][next_index]
-    batch["current_step"] = next_index
-
-    # if next station is a lab test or quality check, lock the batch
-    if "LAB_TEST" in next_station or "QUALITY_CHECK" in next_station:
-        batch["status"] = "UNDER_INSPECTION"
-        print("Job", "is now UNDER INSPECTION at", next_station)
-        print("Batch is locked. Waiting for quality team to release it.")
-        return
-
-    # otherwise just move to the next station
-    batch["status"] = "READY_AT_" + next_station
-    print("Job","- moved to", next_station)
-
-
-def release_hold(job_id):
-    # Quality team approved - release the batch.
-    batch = batches.get(job_id)
-    if batch is None:
-        print("Job not found:", job_id)
-        return
-
-    if batch["status"] != "UNDER_INSPECTION":
-        print("Job", "is not under inspection")
-        return
-
-    print("Job", "- quality PASSED, releasing hold")
-    advance_to_next(batch)
-
-
-def quarantine(job_id):
-    # Quality team rejected - quarantine the batch.
-    batch = batches.get(job_id)
-    if batch is None:
-        print("Job not found:", job_id)
-        return
-
-    if batch["status"] != "UNDER_INSPECTION":
-        print("Job", "is not under inspection")
-        return
-
-    batch["status"] = "QUARANTINED"
-    print("Job", "is QUARANTINED")
-
-
-def get_status(job_id):
-    # Print the current status of a batch.
-    batch = batches.get(job_id)
-    if batch is None:
-        print("Job not found:", job_id)
-        return
-
-    station = batch["routing_map"][batch["current_step"]]
-    print("Job:", job_id, "| Status:", batch["status"], "| Station:", station)
+        if "LAB_TEST" in next_station or "QUALITY_CHECK" in next_station:
+            self.status = "UNDER_INSPECTION"
+        else:
+            self.status = f"READY_AT_{next_station}"
