@@ -22,7 +22,11 @@ class Batch:
 
         first_station: str = self.routing_map[0]
         self.current_step = 0
-        self.status = "READY_AT_" + first_station
+        
+        if "LAB_TEST" in first_station or "QUALITY_CHECK" in first_station:
+            self.status = "UNDER_INSPECTION"
+        else:
+            self.status = "READY_AT_" + first_station
 
     def start_station(self) -> None:
         if not self.status.startswith("READY_AT_"):
@@ -71,3 +75,6 @@ class Batch:
     def get_status(self) -> None:
         station: str = self.routing_map[self.current_step]
         print(f"Job: {self.job_id} | Status: {self.status} | Station: {station}")
+
+# Global dictionary to hold tracking batches as expected by main.py
+batches: dict[str, Batch] = {}
