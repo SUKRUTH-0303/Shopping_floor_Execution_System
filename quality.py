@@ -1,8 +1,6 @@
-import WIP
+import Tracking
 
 Number = int | float
-
-quality_results: dict[str, "QualityRecord"] = {}
 
 class QualityRecord:
     def __init__(self, hardness: Number, friability: Number, dissolution: Number) -> None:
@@ -10,66 +8,67 @@ class QualityRecord:
         self.friability: float = float(friability)
         self.dissolution: float = float(dissolution)
 
+class QualityControl:
+    def __init__(self) -> None:
+        self.quality_results: dict[str, QualityRecord] = {}
 
-def start_quality(job_id: str) -> None:
-    batch: dict[str, object] | None = WIP.batches.get(job_id)
+    def start_quality(self, batch: Tracking.Batch) -> None:
+        if batch.status != "UNDER_INSPECTION":
+            print("Job is not ready for quality inspection")
+            return
 
-    if batch is None:
-        print("Job not found:", job_id)
-        return
+        print("\n--- QUALITY CHECK STARTED ---")
+        print("Job:", batch.job_id)
 
-    if batch["status"] != "UNDER_INSPECTION":  
-        print("Job is not ready for quality inspection")
-        return
+        try:
+            hardness: Number = float(input("Enter Hardness (kg/cm2): "))
+            friability: Number = float(input("Enter Friability (%): "))
+            dissolution: Number = float(input("Enter Dissolution (%): "))
+        except ValueError:
+            print("Invalid input. Please enter numeric values.")
+            return
 
-    print("\n--- QUALITY CHECK STARTED ---")
-    print("Job:", job_id)
+        record = QualityRecord(hardness, friability, dissolution)
+        self.quality_results[batch.job_id] = record
 
-    try:
-        hardness: Number = float(input("Enter Hardness (kg/cm2): "))
-        friability: Number = float(input("Enter Friability (%): "))
-        dissolution: Number = float(input("Enter Dissolution (%): "))
-    except ValueError:
-        print("Invalid input. Please enter numeric values.")
-        return
+        self._evaluate(batch)
 
-    record = QualityRecord(hardness, friability, dissolution)
-    quality_results[job_id] = record
+    def _evaluate(self, batch: Tracking.Batch) -> None:
+        record: QualityRecord | None = self.quality_results.get(batch.job_id)
 
-    evaluate(job_id)
+        if record is None:
+            print("No quality data found")
+            return
 
-def evaluate(job_id: str) -> None:
-    record: QualityRecord | None = quality_results.get(job_id)
+        if (
+            record.hardness >= 4
+            and record.friability <= 1
+            and record.dissolution >= 80
+        ):
+            self._pass_batch(batch)
+        else:
+            self._fail(batch)
 
-    if record is None:
-        print("No quality data found")
-        return
+    def _pass_batch(self, batch: Tracking.Batch) -> None:
+        print("QUALITY PASSED")
+        batch.release_hold()
 
-    if (
-        record.hardness >= 4
-        and record.friability <= 1
-        and record.dissolution >= 80
-    ):
-        pass_batch(job_id)
-    else:
-        fail(job_id)
+    def _fail_batch(self, batch: Tracking.Batch) -> None:
+        print("QUALITY FAILED")
+        batch.quarantine()
 
-def pass_batch(job_id: str) -> None:
-    print("QUALITY PASSED")
-    WIP.release_hold(job_id)
+    # Corrected internal method name
+    def _fail(self, batch: Tracking.Batch) -> None:
+        self._fail_batch(batch)
 
-def fail(job_id: str) -> None:
-    print("QUALITY FAILED")
-    WIP.quarantine(job_id)
+    def view_results(self, batch: Tracking.Batch) -> None:
+        record: QualityRecord | None = self.quality_results.get(batch.job_id)
 
-def view_results(job_id: str) -> None:
-    record: QualityRecord | None = quality_results.get(job_id)
+        if record is None:
+            print("No quality record found")
+            return
 
-    if record is None:
-        print("No quality record found")
-        return
-
-    print("\nQUALITY REPORT")
-    print("Hardness:", record.hardness)
-    print("Friability:", record.friability)
-    print("Dissolution:", record.dissolution)
+        print("\nQUALITY REPORT")
+        print("Hardness:", record.hardness)
+        print("Friability:", record.friability)
+        print("Dissolution:", record.dissolution)
