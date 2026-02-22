@@ -56,8 +56,6 @@ class QualityControl:
     def _fail_batch(self, batch: Tracking.Batch) -> None:
         print("QUALITY FAILED")
         batch.quarantine()
-
-    # Corrected internal method name
     def _fail(self, batch: Tracking.Batch) -> None:
         self._fail_batch(batch)
 
