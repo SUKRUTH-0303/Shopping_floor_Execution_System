@@ -10,6 +10,7 @@ import quality
 class ShopFloorSystem:
     def __init__(self) -> None:
         self.job_id: str | None = None
+        self.qc = quality.QualityControl()
 
     def simulate_processing(self, station: str) -> None:
         print(f"\n{station} STARTED")
@@ -50,7 +51,7 @@ class ShopFloorSystem:
                 break
 
             if status == "UNDER_INSPECTION":
-                quality.start_quality(self.job_id)
+                self.qc.start_quality(batch_obj)
                 continue
 
             if status.startswith("READY_AT_"):
